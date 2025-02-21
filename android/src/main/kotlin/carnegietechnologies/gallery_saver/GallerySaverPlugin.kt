@@ -18,10 +18,9 @@ class GallerySaverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var gallerySaver: GallerySaver? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(binding.binaryMessenger, "gallery_saver")
-        channel.setMethodCallHandler(this)
-
-
+        channel = MethodChannel(binding.binaryMessenger, "gallery_saver").apply {
+            setMethodCallHandler(this@GallerySaverPlugin)
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -35,8 +34,8 @@ class GallerySaverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         this.activity = binding.activity
-        gallerySaver = GallerySaver(activity!!)
-        binding.addRequestPermissionsResultListener(gallerySaver!!)
+        gallerySaver = activity?.let { GallerySaver(it) }  // Avoid force unwrap (!!)
+        gallerySaver?.let { binding.addRequestPermissionsResultListener(it) }
     }
 
 
@@ -54,6 +53,7 @@ class GallerySaverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
-
+        gallerySaver = null
+        activity = null
     }
 }
